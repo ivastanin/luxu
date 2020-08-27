@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_asset_asset_form_trailers" model="ir.ui.view">
+        <field name="name">Trailer asset form inherit</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='name']" position="attributes">
+                <attribute name="string">Trailer Name</attribute>
+            </xpath>
+            <xpath expr="//field[@name='value']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='salvage_value']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='value_residual']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_id']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!--record id="view_account_asset_asset_form_trailers2" model="ir.ui.view">
+        <field name="name">Trailer asset form inherit2</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='name']" position="attributes">
+                <attribute name="string">Trailer Name</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+            <xpath expr="//page[1]" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+        </field>
+    </record-->
+
+    <record id="view_account_asset_asset_tree_trailers" model="ir.ui.view">
+        <field name="name">Trailer asset tree inherit</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_asset_purchase_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="string">Trailer Name</attribute>
+            </xpath>
+            <xpath expr="//tree" position="attributes">
+                <attribute name="string">Trailers</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem name="Trailer Management" id="traccar_person_assets_tracking.menu_asset_tracking" sequence="110" groups="traccar_person_assets_tracking.group_assets_tracking_user"/>
+    <menuitem name="Trailers" id="traccar_person_assets_tracking.menu_assets_traccar_assets" parent="traccar_person_assets_tracking.menu_asset_tracking" sequence="10" groups="traccar_person_assets_tracking.group_assets_tracking_user"/>
+    <menuitem parent="traccar_person_assets_tracking.menu_assets_traccar_assets" name="Trailers" id="traccar_person_assets_tracking.menu_action_account_asset_asset_form_tracking" action="traccar_person_assets_tracking.action_account_asset_asset_form_tracking" sequence="11" groups="account.group_account_user"/>
+    <menuitem parent="traccar_person_assets_tracking.menu_assets_traccar_assets" name="Trailers Location History" id="traccar_person_assets_tracking.menu_asset_location_history" action="traccar_person_assets_tracking.action_asset_location_history" sequence="12" groups="traccar_person_assets_tracking.group_assets_tracking_user"/>
+
+    <menuitem id="asset_reservations.menu_asset_reservations" name="Trailer Reservations"
+        parent="traccar_person_assets_tracking.menu_asset_tracking" sequence="20" />
+    <menuitem name="Reservations" id="asset_reservations.menu_action_asset_reservation_tree_all"
+        action="asset_reservations.action_asset_reservation_tree_all" parent="asset_reservations.menu_asset_reservations"
+        sequence="21" />
+    <menuitem id="asset_reservations.menu_action_asset_reservation_summary" name="Trailer Reservation Summary"
+        action="asset_reservations.action_asset_reservation_summary" parent="asset_reservations.menu_asset_reservations"
+        sequence="22" />
+
+
+    <record id="asset_reservation_summary_form_view_trailers" model="ir.ui.view">
+        <field name="name">asset.reservation.summary.form.trailers</field>
+        <field name="model">asset.reservation.summary</field>
+        <field name="inherit_id" ref="asset_reservations.asset_reservation_summary_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="replace">
+                <header>
+                    <separator string="Trailer Reservation Summary" colspan="4" />
+                </header>
+            </xpath>
+            <xpath expr="//page" position="replace">
+                <page string="Trailer Summary">
+                    <field name="summary_header" colspan="4" invisible="1" />
+                    <field name="asset_summary" colspan="4" invisible="1" />
+                    <widget type="Asset_Reservation"></widget>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="quick_asset_reservation_summary_form_view_trailers" model="ir.ui.view">
+        <field name="name">quick.asset.reservation.form.trailers</field>
+        <field name="model">quick.asset.reservation</field>
+        <field name="inherit_id" ref="asset_reservations.quick_asset_reservation_form_view"/>
+        <field name="arch" type="xml">
+            <field name="asset_id" position="attributes">
+                <attribute name="string">Trailer</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="asset_reservation_form_view_trailers" model="ir.ui.view">
+        <field name="name">asset.reservation.form.trailers</field>
+        <field name="model">asset.reservation</field>
+        <field name="inherit_id" ref="asset_reservations.view_asset_reservation_form"/>
+        <field name="arch" type="xml">
+            <field name="reservation_line" position="replace">
+                <field name="reservation_line" colspan="4" nolabel="1">
+                    <form string="Reservation Line">
+                        <separator string="Trailer Type" />
+                        <field name="name" invisible="1" />
+                        <field name="category_id" colspan="4" nolabel="1" />
+                        <newline />
+                        <separator string="Select Trailer" />
+                        <field name="reserve" colspan="4" string="Trailer Number"
+                            nolabel="1" />
+                    </form>
+                    <tree string="Reservation Line">
+                        <field name="reserve" string="Trailers" />
+                    </tree>
+                </field>
+            </field>
+        </field>
+    </record>
+
+
+</odoo>

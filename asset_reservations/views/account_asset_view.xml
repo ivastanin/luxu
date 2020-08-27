@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_asset_asset_form_reservations" model="ir.ui.view">
+        <field name="name">Asset reservations form inherit</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="is_rental"/>
+                <field name="product_id"/>
+            </xpath>
+            <xpath expr="//page[last()]" position="after">
+                <page string="Reservations" name="reserv_history">
+                    <field name="asset_reservation_line_ids" colspan="4" nolabel="1">
+                        <form string=" Reservations">
+                            <group colspan='4' col='4'>
+                                <field name="asset_id" />
+                                <field name="check_in" />
+                                <field name="state" />
+                                <field name="check_out" />
+                                <field name="reservation_id" />
+                                <field name="status" />
+                            </group>
+                        </form>
+                        <tree>
+                            <field name="asset_id" />
+                            <field name="check_in" />
+                            <field name="check_out" />
+                            <field name="state" />
+                            <field name="reservation_id" />
+                            <field name="status" />
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="hide_asset_depreciation_fields" invisible="1"/>
+            </xpath>
+            <xpath expr="//header" position="attributes">
+                <attribute name="attrs">{'invisible': [('hide_asset_depreciation_fields', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='open_entries']" position="attributes">
+                <attribute name="attrs">{'invisible': [('hide_asset_depreciation_fields', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//page[1]" position="attributes">
+                <attribute name="attrs">{'invisible': [('hide_asset_depreciation_fields', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//page[2]" position="attributes">
+                <attribute name="attrs">{'invisible': [('hide_asset_depreciation_fields', '=', True)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_asset_asset_kanban" model="ir.ui.view">
+        <field name="name">account.asset.asset.kanban</field>
+        <field name="model">account.asset.asset</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="rental_status">
+                <field name="name" />
+                <field name="rental_status" />
+                <field name="color" />
+                <templates>
+                    <t t-name="kanban-box">
+                        <div
+                            t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown" groups="base.group_user">
+                                <a class="dropdown-toggle btn" data-toggle="dropdown" href="#">
+                                    <span class="fa fa-bars fa-lg" />
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                    <t t-if="widget.editable">
+                                        <li>
+                                            <a type="edit">Edit</a>
+                                        </li>
+                                    </t>
+                                    <t t-if="widget.deletable">
+                                        <li>
+                                            <a type="delete">Delete</a>
+                                        </li>
+                                    </t>
+                                    <li>
+                                        <ul class="oe_kanban_colorpicker" data-field="color" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="oe_kanban_details" style='margin-top: -5px;'>
+                                <div class="oe_kanban_content">
+                                    <div class="oe_kanban_project_list">
+                                        <H3>
+                                            <a type="open">
+                                                <field name="name" />
+                                                <t t-if="record.code.raw_value" style="margin-right: 10px">
+                                                    [
+                                                    <field name="code" />
+                                                    ]
+                                                </t>
+                                            </a>
+                                        </H3>
+                                    </div>
+                                    <div name="tags" />
+                                    <ul>
+                                        <li>
+                                            Status:
+                                            <field name="rental_status"></field>
+                                        </li>
+                                        <li>
+                                            Category:
+                                            <field name="category_id"></field>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <a t-if="record.rental_status.raw_value === 'available'" type="object"
+                                        string="Available" name="set_asset_status_rented"
+                                        class="oe_kanban_status oe_kanban_status_green ">
+                                    </a>
+                                    <a t-if="record.rental_status.raw_value === 'rented'" type="object"
+                                        string="rented" name="set_asset_status_available"
+                                        class="oe_kanban_status oe_kanban_status_red ">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="oe_clear"></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="traccar_person_assets_tracking.action_account_asset_asset_form_tracking">
+            <field name="name">Assets</field>
+            <field name="res_model">account.asset.asset</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form,map</field>
+            <field name="view_id" ref="view_account_asset_asset_kanban"/>
+            <field name="domain">[('category_id.type', '=', 'purchase')]</field>
+            <field name="context">{'search_default_tracking': True}</field>
+        </record>
+
+
+
+    <!-- ======== Reservation ======== -->
+    <!-- Form view of asset reservation -->
+    <record id="view_asset_reservation_form" model="ir.ui.view">
+        <field name="name">asset.reservation.form</field>
+        <field name="model">asset.reservation</field>
+        <field name="arch" type="xml">
+            <form string="Reservation">
+                <header>
+                    <button name="send_reservation_mail" type="object"
+                        string="Send Reservation Email" states="confirm" class="oe_highlight" />
+                    <button name="confirmed_reservation" string="Confirm"
+                        states="draft" class="oe_highlight" type="object" />
+                    <button name="create_sales" string="Create a Sale" states="confirm"
+                        class="oe_highlight" type="object" />
+                    <button name="cancel_reservation" string="Cancel Reservation"
+                        states="draft,confirm" class="oe_highlight" type="object" />
+                    <button name="set_to_draft_reservation" string="Set to Draft"
+                        states="cancel" class="oe_highlight" type="object" />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sales_order" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('sale_order_id', '=', False)]}">
+                            <field name="sale_order_id" readonly="1" string="Sales Order"/>
+                        </button>
+                    </div>
+                    <label string="Reservation No" />
+                    <h1>
+                        <field name="reservation_no" class="oe_inline" />
+                    </h1>
+                    <group>
+                        <group colspan="4" col="4">
+                            <field name="date_order" />
+                        </group>
+                        <separator />
+                        <group colspan="4" col="4">
+                            <field name="partner_id" domain="[('customer','=',True)]" />
+                            <field name="pricelist_id" col="2" />
+                            <field name="partner_order_id" domain="[('parent_id','=',partner_id)]" />
+                            <newline />
+                            <field name="partner_invoice_id" domain="[('parent_id','=',partner_id)]" />
+                            <field name="partner_shipping_id" domain="[('parent_id','=',partner_id)]"
+                                invisible="True" />
+                        </group>
+                        <group colspan="4" col="4">
+                            <field name="checkin" />
+                            <field name="checkout" />
+                        </group>
+                        <field name="dummy" invisible="True" />
+                    </group>
+                    <notebook>
+                        <page string='Reservation Line'>
+                            <field name="reservation_line" colspan="4" nolabel="1">
+                                <form string="Reservation Line">
+                                    <separator string="Asset Type" />
+                                    <field name="name" invisible="1" />
+                                    <field name="category_id" colspan="4" nolabel="1" />
+                                    <newline />
+                                    <separator string="Select Asset" />
+                                    <field name="reserve" colspan="4" string="Asset Number"
+                                        nolabel="1" />
+                                </form>
+                                <tree string="Reservation Line">
+                                    <field name="reserve" string="Assets" />
+                                </tree>
+                            </field>
+                        </page>
+                        <!--page string='History'>
+                            <field name='folio_id' readonly='1' />
+                        </page-->
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view of asset reservation -->
+    <record id="view_asset_reservation_tree" model="ir.ui.view">
+        <field name="name">asset.reservation.tree</field>
+        <field name="model">asset.reservation</field>
+        <field name="arch" type="xml">
+            <tree string="Reservation"
+                colors="blue:state == 'draft';gray:state == 'done';lightgray:state == 'cancel';">
+                <field name="reservation_no" />
+                <field name="partner_id" />
+                <field name="checkin" />
+                <field name="checkout" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Search view of asset reservation -->
+    <record id="view_asset_reservation_search" model="ir.ui.view">
+        <field name="name">asset.reservation.search</field>
+        <field name="model">asset.reservation</field>
+        <field name="arch" type="xml">
+            <search string="Reservation">
+                <filter string="Current Reservations"
+                    domain="[('checkout','&gt;=',datetime.datetime.now().replace(hour=0, minute=0, second=0)),('checkin','&lt;=',datetime.datetime.now().replace(hour=23, minute=59, second=59))]"
+                    help="Current Reservations" />
+                <filter domain="[('state','=','draft')]" string="Draft" />
+                <filter domain="[('state','=','confirm')]" string="Confirm" />
+                <filter domain="[('state','=','cancel')]" string="Cancel" />
+                <filter domain="[('state','=','done')]" string="Done" />
+                <field name="partner_id" />
+                <field name="reservation_no" />
+                <field name="checkin" />
+                <field name="checkout" />
+                <field name="state" />
+                <newline />
+                <group expand="0" string="Group By">
+                    <filter name="partner_id" string="Guest Name" icon="terp-personal"
+                        domain="[]" context="{'group_by':'partner_id'}" />
+                    <filter string="Order By Month" domain="[]"
+                        context="{'group_by':'date_order'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Graph view of asset reservation -->
+    <record id="view_asset_reservation_graph" model="ir.ui.view">
+        <field name="name">asset.reservation.graph</field>
+        <field name="model">asset.reservation</field>
+        <field name="arch" type="xml">
+            <graph string="Reservation" type="pie">
+                <field name="state" />
+                <field name="reservation_no" />
+            </graph>
+        </field>
+    </record>
+
+    <!-- Calendar view of asset reservation -->
+    <record id="asset_calendar_view" model="ir.ui.view">
+        <field name="name">Asset Reservation</field>
+        <field name="model">asset.reservation</field>
+        <field name="priority" eval="2" />
+        <field name="arch" type="xml">
+            <calendar string="Current Reservation" date_start="checkin"
+                date_stop="dummy" mode="month" color="partner_id">
+                <field name="partner_id" />
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Gantt view of asset reservation -->
+    <record id="asset_gantt_view" model="ir.ui.view">
+        <field name="name">asset.gantt</field>
+        <field name="model">asset.reservation</field>
+        <field name="priority" eval="2" />
+        <field name="arch" type="xml">
+            <gantt date_start="checkin" date_stop="checkout" string="Reservation"
+                default_group_by="partner_id"></gantt>
+        </field>
+    </record>
+
+    <!-- Action of asset reservation -->
+    <record id="action_asset_reservation_tree_all" model="ir.actions.act_window">
+        <field name="name">Reservations</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">asset.reservation</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form,calendar,gantt</field>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Click here to make a new reservation.
+          </p>
+        </field>
+    </record>
+    <menuitem id="menu_asset_reservations" name="Asset Reservations"
+        parent="traccar_person_assets_tracking.menu_asset_tracking" sequence="20" />
+    <menuitem name="Reservations" id="menu_action_asset_reservation_tree_all"
+        action="action_asset_reservation_tree_all" parent="menu_asset_reservations"
+        sequence="21" />
+
+
+
+
+
+
+
+
+    <!-- Form view of asset reservation summary -->
+    <record id="asset_reservation_summary_form_view" model="ir.ui.view">
+        <field name="name">asset.reservation.summary.form</field>
+        <field name="model">asset.reservation.summary</field>
+        <field name="arch" type="xml">
+            <form string="Reservation Summary">
+                <header>
+                    <separator string="Asset Reservation Summary" colspan="4" />
+                </header>
+                <sheet>
+                    <group colspan="4" col="4">
+                        <div>
+                            <label for="date_from" string="Summary Period" />
+                            <field name="date_from" class="oe_inline" />
+                            to
+                            <field name="date_to" class="oe_inline" />
+                        </div>
+                    </group>
+                    <notebook>
+                        <page string="Asset Summary">
+                            <field name="summary_header" colspan="4" invisible="1" />
+                            <field name="asset_summary" colspan="4" invisible="1" />
+                            <widget type="Asset_Reservation"></widget>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Form view of quick asset reservation -->
+    <record id="quick_asset_reservation_form_view" model="ir.ui.view">
+        <field name="name">quick.asset.reservation.form</field>
+        <field name="model">quick.asset.reservation</field>
+        <field name="arch" type="xml">
+            <form string="Quick Reservation">
+                <header>
+                    <separator string="Quick Reservation" colspan="4" />
+                </header>
+                <sheet>
+                    <group colspan="4" col="4">
+                        <field name="partner_id" />
+                        <field name="asset_id" readonly="1" />
+                        <field name="check_in" />
+                        <field name="check_out" />
+                        <field name="pricelist_id" />
+                        <field name="partner_invoice_id" />
+                        <field name="partner_order_id" />
+                        <field name="partner_shipping_id" />
+                    </group>
+                </sheet>
+                <footer>
+                    <group colspan="2" col="2">
+                        <button string="Save" name="asset_reserve" type="object"
+                            class="btn-primary" />
+                        <button string="Cancel" special="cancel" class="btn-primary" />
+                    </group>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Asset Reservation Summary -->
+    <record id="action_asset_reservation_summary" model="ir.actions.act_window">
+        <field name="name">Reservation Summary</field>
+        <field name="res_model">asset.reservation.summary</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <menuitem id="menu_action_asset_reservation_summary" name="Assets Reservation Summary"
+        action="action_asset_reservation_summary" parent="menu_asset_reservations"
+        sequence="22" />
+
+
+    <!-- ====== Company Configuration ====== -->
+    <record id="res_company_inherit_config_additionalhours" model="ir.ui.view">
+        <field name="name">res.company.inherit.config.additionalhours</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="additional_hours" />
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="action_rental_orders" model="ir.actions.act_window">
+        <field name="name">Sales Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="search_view_id" ref="sale.sale_order_view_search_inherit_sale"/>
+        <field name="context">{}</field>
+        <field name="domain">[('reservation_id', '!=', False),('state', 'not in', ('draft', 'sent', 'cancel'))]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Create a Quotation, the first step of a new sale.
+            </p><p>
+                Once the quotation is confirmed, it becomes a sales order.
+                You'll be able to invoice it and collect payments.
+                From the <i>Sales Orders</i> menu, you can track delivery
+                orders or services.
+            </p>
+        </field>
+    </record>
+    <record id="action_rental_quotations" model="ir.actions.act_window">
+        <field name="name">Quotations</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_type">form</field>
+        <field name="view_id" ref="sale.view_quotation_tree"/>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+        <field name="context">{'hide_sale': True}</field>
+        <field name="domain">[('reservation_id', '!=', False)]</field>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Create a Quotation, the first step of a new sale.
+          </p><p>
+            Your next actions should flow efficiently: confirm the Quotation
+            to a Sale Order, then create the Invoice and collect the Payment.
+          </p><p>
+            Note that once a Quotation becomes a Sale Order, it will be moved
+            from the Quotations list to the Sales Order list.
+          </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_asset_rental_orders" name="Sales"
+        parent="traccar_person_assets_tracking.menu_asset_tracking" sequence="25" />
+    <menuitem name="Quotations" id="menu_action_rental_quotations"
+        action="action_rental_quotations" parent="menu_asset_rental_orders"
+        sequence="26" />
+    <menuitem name="Orders" id="menu_action_rental_orders"
+        action="action_rental_orders" parent="menu_asset_rental_orders"
+        sequence="27" />
+
+
+</odoo>

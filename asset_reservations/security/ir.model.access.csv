@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_reservation_line,access_asset_reservation_line,model_asset_reservation_line,,1,1,1,1
+access_asset_reservation_summary,access_asset_reservation_summary,model_asset_reservation_summary,,1,1,1,1
+access_asset_reservation,access_asset_reservation,model_asset_reservation,,1,1,1,1
+access_account_asset_asset_reservation_line,access_account_asset_asset_reservation_line,model_account_asset_asset_reservation_line,,1,1,1,1
